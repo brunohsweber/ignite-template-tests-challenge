@@ -37,7 +37,7 @@ export class StatementsRepository implements IStatementsRepository {
 
   async getUserBalance({ user_id, with_statement = false }: IGetBalanceDTO):
     Promise<
-      { balance: number } | { balance: number, statement: Statement[] }
+      { balance: number } | [{ balance: number; statement: Statement[] }]
     >
   {
     const statement = await this.repository.find({
@@ -46,17 +46,14 @@ export class StatementsRepository implements IStatementsRepository {
 
     const balance = statement.reduce((acc, operation) => {
       if (operation.type === 'deposit') {
-        return acc + operation.amount;
+        return acc + Number(operation.amount);
       } else {
-        return acc - operation.amount;
+        return acc - Number(operation.amount);
       }
     }, 0)
 
     if (with_statement) {
-      return {
-        statement,
-        balance
-      }
+      return [{ balance, statement }]
     }
 
     return { balance }
